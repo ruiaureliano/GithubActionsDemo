@@ -1,4 +1,4 @@
-name: iOS Build Check
+name: iOS CI
 
 on:
   push:
@@ -7,13 +7,34 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-test-lint:
     runs-on: macos-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Build
+    # 1. Instalar SwiftLint e SwiftFormat
+    - name: Install linting tools
       run: |
-        xcodebuild -scheme GithubActionsDemo -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 16" build
+        brew install swiftlint
+        brew install swiftformat
+
+    # 2. SwiftFormat
+    - name: Run SwiftFormat
+      run: |
+        swiftformat .
+
+    # 3. SwiftLint
+    - name: Run SwiftLint
+      run: |
+        swiftlint --strict
+
+    # 4. Build + Test
+    - name: Build and Test
+      run: |
+        xcodebuild \
+          -scheme GithubActionsDemo \
+          -sdk iphonesimulator \
+          -destination "platform=iOS Simulator,name=iPhone 16" \
+          test
